@@ -56,4 +56,10 @@ class OracleDBConfig:
         exequery = self.connection.cursor()
         exequery.execute(query)
         
-        return exequery.fetchall()
+        colunas = [desc[0] for desc in exequery.description]
+        dados = exequery.fetchall()
+        
+        exequery.close()
+        self.connection.close()
+        
+        return dados, colunas

@@ -1,6 +1,7 @@
 plotly
 oracledb
 pandas
+openpyxl
 dotenv
 fastapi
 logging

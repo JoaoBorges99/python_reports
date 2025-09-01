@@ -3,3 +3,4 @@ venv/
 sql/
 __pycache__/
 log/
+arquivos-gerados/
