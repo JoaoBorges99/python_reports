@@ -6,3 +6,4 @@ fastapi
 logging
 responses
 uvicorn
+httpx

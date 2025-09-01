@@ -1,2 +1,5 @@
 .env
 venv/
+sql/
+__pycache__/
+log/
