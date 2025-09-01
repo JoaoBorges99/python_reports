@@ -14,7 +14,7 @@ client = TestClient(app)
 
 def read_sql_file(filename: str) -> str:
     with open(filename, 'r', encoding='utf-8') as arquivo:
-        return arquivo.read()
+        return arquivo.read().strip()
 
 def write_log_file(pasta: str, filename: str, content: str) -> None:
     with open(f'log/{pasta}/{filename}_{datetime.now().strftime("%d-%m-%Y")}.log', 'a', encoding='utf-8') as arquivo:
@@ -30,10 +30,10 @@ def index():
 
 
 @app.get('/gerador_relatorio/{file_name}', response_class= JSONResponse)
-def rel_produtos(file_name: str) -> JSONResponse:
+def rel_produtos(file_name: str, filial:str) -> JSONResponse:
     try:
         sql = read_sql_file(f'sql/{file_name}.sql')
-        dados,colunas = db.OracleDBConfig().execute_select(query=sql)
+        dados,colunas = db.OracleDBConfig().execute_select(sql,{'CODFILIAL': filial})
         return JSONResponse(
             content={
                 'name': file_name, 
@@ -58,8 +58,8 @@ def rel_produtos(file_name: str) -> JSONResponse:
             status_code=500
         )
 
-async def get_data_report (arquivo: str):
-    response = client.get(f'/gerador_relatorio/{arquivo}')
+async def get_data_report (arquivo: str, filial: str):
+    response = client.get(f'/gerador_relatorio/{arquivo}?filial={filial}')
     data = response.json()
     
     return data['data'], data['colunas']
@@ -67,7 +67,7 @@ async def get_data_report (arquivo: str):
 @app.get('/criando_excel/{file_name}')
 async def criando_excel(file_name: str, filial: str, extension: str = 'xlsx') -> JSONResponse:
     try:
-        dados, colunas = await get_data_report(file_name)
+        dados, colunas = await get_data_report(file_name, filial)
 
         if not dados:
             raise ValueError('Nenhum dado encontrado para gerar o relatorio')

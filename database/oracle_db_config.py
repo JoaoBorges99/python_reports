@@ -52,14 +52,17 @@ class OracleDBConfig:
         except oracledb.Error as e:
             log.error('Falha na inicialização do cliente Oracle: {e}')
 
-    def execute_select(self, query: str):
-        exequery = self.connection.cursor()
-        exequery.execute(query)
-        
-        colunas = [desc[0] for desc in exequery.description]
-        dados = exequery.fetchall()
-        
-        exequery.close()
-        self.connection.close()
-        
-        return dados, colunas
+    def execute_select(self, query: str, params: dict = {}):
+        try:
+            exequery = self.connection.cursor()
+            exequery.execute(query, params)
+            colunas = [desc[0] for desc in exequery.description]
+            dados = exequery.fetchall()
+            
+            exequery.close()
+            # self.connection.close()
+            
+            return dados, colunas
+        except Exception as e:
+            log.error(f'Erro ao executar consulta no banco de dados {self.dbName}, erro: {e}')
+            raise e
