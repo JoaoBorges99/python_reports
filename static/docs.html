@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <title>Documentação gerador de relatorio excel</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<style>
+    /* Fundo com gradiente animado */
+    nav {
+        /* margin-top: 2rem; */
+        text-align: center;
+    }
+    nav a {
+        margin: 0 10px;
+        text-decoration: none;
+        font-weight: bold;
+    }    
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+        line-height: 1.6;
+        background: linear-gradient(135deg, #1e1e2f, #282846, #1e1e2f);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        color: #f4f4f4;
+    }
+
+    /* Animação do gradiente */
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* Cabeçalho */
+    header {
+        text-align: center;
+        padding: 20px 20px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(5px);
+        border-bottom: 2px solid rgba(255,255,255,0.1);
+        margin-bottom: 15px;
+    }
+
+    header h1 {
+        margin: 0;
+        font-size: 2rem;
+        background: #e5e5f0;
+        -webkit-background-clip: text;
+        background-clip: text;
+    }
+
+    /* Conteúdo */
+    main {
+        max-width: 900px;
+        margin: auto;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 15px;
+        box-shadow: 0px 4px 30px rgba(0,0,0,0.4);
+    }
+
+    /* Títulos */
+    h2, h3 {
+        border-left: 5px solid #ff6ec4;
+        padding-left: 10px;
+        color: #fff;
+    }
+
+    /* Código inline */
+    code {
+        background: rgba(255,255,255,0.1);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-family: 'Fira Code', monospace;
+    }
+
+    /* Blocos de código */
+    pre {
+        padding: 15px;
+        border-radius: 10px;
+        overflow-x: auto;
+    }
+
+    /* Links */
+    a {
+        color: #ff9ff3;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    a:hover {
+        color: #feca57;
+    }
+
+    /* Tabelas */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+    table th, table td {
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 10px;
+    }
+    table th {
+        background: rgba(255,255,255,0.1);
+    }
+
+    /* Rodapé */
+    footer {
+        text-align: center;
+        padding: 20px;
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.6);
+    }
+</style>
+<body>
+    <nav>
+        {{nav}}
+    </nav>    
+    <header>
+        <h1>📄 Documentação do Projeto</h1>
+    </header>
+
+    <main>
+        {{content}}
+    </main>
+
+    <footer>
+        <p>Feito por AGN Consultoria e Gestão</p>
+    </footer>
+</body>
+</html>

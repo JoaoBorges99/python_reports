@@ -1,14 +1,20 @@
 from fastapi import FastAPI, Body
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.testclient import TestClient
 from datetime import datetime
 import database.oracle_db_config as db
 import report_creation
+import markdown
+import os
 
 app = FastAPI(
     title="API geração de relatorios Excel",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url=None
 )
+
+with open("static/docs.html", "r", encoding="utf-8") as f:
+    BASE_HTML = f.read()
 
 client = TestClient(app)
 
@@ -28,6 +34,40 @@ def favicon():
 def index():
     return JSONResponse(content={'version': '1.0.0', 'message': 'API geração de relatorios Excel', 'status' : True}, status_code=200)
 
+
+@app.get("/doc", response_class=HTMLResponse)
+@app.get("/docs", response_class=HTMLResponse)
+def paginated_docs(page: int = 1):
+    docs_dir = "docs"
+    md_files = sorted([f for f in os.listdir(docs_dir) if f.endswith(".md")])
+
+    # Verifica se a página existe
+    if page < 1 or page > len(md_files):
+        return HTMLResponse(content=f"<h1>Página {page} não encontrada</h1>", status_code=404)
+
+    # Abre o arquivo correspondente
+    file_name = md_files[page - 1]
+    with open(os.path.join(docs_dir, file_name), "r", encoding="utf-8") as f:
+        md_content = f.read()
+
+    # Converte para HTML
+    html_content = markdown.markdown(md_content, extensions=["fenced_code", "tables"])
+
+    # Links de navegação
+    nav_links = ""
+    if page > 1:
+        nav_links += f'<a href="/docs?page={page-1}">⬅ Anterior</a> '
+    if page < len(md_files):
+        nav_links += f'<a href="/docs?page={page+1}">Próxima ➡</a>'
+
+    # Injeta no template
+    final_html = (
+        BASE_HTML.replace("{{title}}", file_name)
+                 .replace("{{nav}}", nav_links)        
+                 .replace("{{content}}", html_content)
+    )
+
+    return HTMLResponse(content=final_html)
 
 @app.post('/gerador_relatorio/{file_name}', response_class= JSONResponse)
 def rel_produtos(file_name: str, body: dict = Body() ) -> JSONResponse:
