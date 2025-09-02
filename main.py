@@ -30,78 +30,72 @@ def index():
 
 
 @app.post('/gerador_relatorio/{file_name}', response_class= JSONResponse)
-def rel_produtos(file_name: str, filtros: dict = Body() ) -> JSONResponse:
+def rel_produtos(file_name: str, body: dict = Body() ) -> JSONResponse:
     try:
+        filtros = body.get('filtros', {})
+        extension = body.get('extension', 'xlsx')
+        subtitulo = filtros['CODFILIAL'] if 'CODFILIAL' in filtros else 'geral'
+        
         sql = read_sql_file(f'sql/{file_name}.sql')
+
         dados,colunas = db.OracleDBConfig().execute_select(sql, filtros)
         return JSONResponse(
-            content={
-                'name': file_name, 
-                'time': datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
+            content= {
+                'name': f'{file_name}-{subtitulo}',
+                'extension': extension,
+                'time': datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                 'message': 'Relatorio gerado com sucesso', 
                 'error' : False,
-                'colunas':colunas,
+                'filtros': filtros,
+                'colunas': colunas,
                 'data' : dados
-            }, 
+            },             
             status_code=200
         )
     except Exception as e:
         return JSONResponse(
             content={
-                'name': file_name, 
+                'name': f'{file_name}-{subtitulo}',
+                'extension': extension,                
                 'time': datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
                 'message': f'Erro ao gerar relatorio, erro: {e}', 
                 'error' : True,
+                'filtros': filtros,                
                 'colunas': [],
                 'data' : []
             }, 
             status_code=500
         )
 
-async def get_data_report (arquivo: str, filtros: dict):
-    response = client.post(f'/gerador_relatorio/{arquivo}', json=filtros)
-    data = response.json()
-    
-    return data['data'], data['colunas']
+async def get_data_report (arquivo: str, body: dict)-> dict:
+    response = client.post(f'/gerador_relatorio/{arquivo}', json=body)
+    return response.json()
     
 @app.post('/criando_excel/{file_name}')
-async def criando_excel(file_name: str, filtros: dict = Body(), extension: str = 'xlsx') -> JSONResponse:
+async def criando_excel(file_name: str, body: dict = Body(),) -> JSONResponse:
     try:
-        dados, colunas = await get_data_report(file_name, filtros)
+        filtros = body.get('filtros', {})
+        extension = body.get('extension', 'xlsx')
+        subtitulo = filtros['CODFILIAL'] if 'CODFILIAL' in filtros else 'geral'
+        
+        json = await get_data_report(file_name, body)
 
-        if not dados:
-            raise ValueError('Nenhum dado encontrado para gerar o relatorio')
+        dados = json.get('data', [])
+        colunas = json.get('colunas', [])
 
-        report_creation.writeExcel(dados, colunas, f'arquivos-gerados/{file_name}', extension)
+        report_creation.writeExcel(dados, colunas, f'arquivos-gerados/{file_name}-{subtitulo}', extension)
         
         return JSONResponse(
-            content= {
-                'name': f'{file_name}',
-                'extension': extension,
-                'time': datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-                'message': 'Relatorio excel escrito com sucesso', 
-                'error' : False,
-                'filtros': filtros,
-                'colunas': colunas,
-                'data' : dados
-            }, 
+            content=json, 
             status_code=200
         )
     except Exception as e:
-        conteudo = {
-            'name': f'{file_name}',
-            'extension': extension,
-            'time': datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
-            'message': f'Erro ao escrever relatorio, erro: {e}', 
-            'error' : True,
-            'filtros': filtros,
-            'colunas': [],
-            'data' : []
-        }
-
-        write_log_file('error', f'{file_name}', str(conteudo))
+        write_log_file('error', f'{file_name}-{subtitulo}', str(json))
+        
+        json['message'] = f'Erro ao gerar relatorio, erro: {e}'
+        json['error'] = True
 
         return JSONResponse(
-            content= conteudo, 
+            content= json, 
             status_code=500            
         )
